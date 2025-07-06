@@ -82,57 +82,32 @@ class App extends Component {
 
   onButtonChange = () => {
     this.setState({ imageUrl: this.state.input });
-    const raw = JSON.stringify({
-      "user_app_id": {
-        "user_id": USER_ID,
-        "app_id": APP_ID
-      },
-      "inputs": [
-        {
-          "data": {
-            "image": {
-              "url": this.state.input
 
-            }
-          }
-        }
-      ]
-    });
-
-    const requestOptions = {
+    fetch("http://localhost:3000/clarifai", {
       method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Key ' + PAT
-      },
-      body: raw
-    };
-    fetch("https://api.clarifai.com/v2/models/" + MODEL_ID + "/versions/" + MODEL_VERSION_ID + "/outputs", requestOptions)
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageUrl: this.state.input })
+    })
       .then(response => response.json())
       .then(response => {
         if (response) {
-          fetch('https://facerecognizebrain-bckend-1.onrender.com/image', {
+          fetch('http://localhost:3000/image', {
             method: 'put',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               id: this.state.user.id
             })
-          }).then(response => response.json())
+          })
+            .then(response => response.json())
             .then(count => {
-              // console.log("1", this.state.user)
-              const userObject = { ...this.state.user, entries: count }
-
-              // this.setState(userObject)
-              this.setState(Object.assign(this.state.user, { entries: count }))
-              // console.log("2", this.state.user)
-            })
+              this.setState(Object.assign(this.state.user, { entries: count }));
+            });
         }
-        this.faceBox(this.calculateFaceLocation(response))
+        this.faceBox(this.calculateFaceLocation(response));
       })
-      .catch(error => console.log('error', error))
-
-
+      .catch(error => console.log('error', error));
   };
+
 
   onRouteChange = (route) => {
     if (route === 'Signout') {
